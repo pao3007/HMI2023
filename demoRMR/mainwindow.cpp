@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     //tu je napevno nastavena ip. treba zmenit na to co ste si zadali do text boxu alebo nejaku inu pevnu. co bude spravna
-    ipaddress="127.0.0.1";//192.168.1.11toto je na niektory realny robot.. na lokal budete davat "127.0.0.1"
+    ipaddress="192.168.1.14";//192.168.1.11toto je na niektory realny robot.. na lokal budete davat "127.0.0.1"
   //  cap.open("http://192.168.1.11:8000/stream.mjpg");
     ui->setupUi(this);
     datacounter=0;
@@ -112,14 +112,6 @@ int MainWindow::processThisRobot(TKobukiData robotdata)
     /// ale nic vypoctovo narocne - to iste vlakno ktore cita data z robota
     ///teraz tu posielam rychlosti na zaklade toho co setne joystick a vypisujeme data z robota(kazdy 5ty krat. ale mozete skusit aj castejsie). vyratajte si polohu. a vypiste spravnu
     /// tuto joystick cast mozete vklude vymazat,alebo znasilnit na vas regulator alebo ake mate pohnutky... kazdopadne, aktualne to blokuje gombiky cize tak
-    if(forwardspeed==0 && rotationspeed!=0)
-        robot.setRotationSpeed(rotationspeed);
-    else if(forwardspeed!=0 && rotationspeed==0)
-        robot.setTranslationSpeed(forwardspeed);
-    else if((forwardspeed!=0 && rotationspeed!=0))
-        robot.setArcSpeed(forwardspeed,forwardspeed/rotationspeed);
-    else
-        robot.setTranslationSpeed(0);
 
 ///TU PISTE KOD... TOTO JE TO MIESTO KED NEVIETE KDE ZACAT,TAK JE TO NAOZAJ TU. AK AJ TAK NEVIETE, SPYTAJTE SA CVICIACEHO MA TU NATO STRING KTORY DA DO HLADANIA XXX
 
@@ -178,6 +170,8 @@ int MainWindow::processThisCamera(cv::Mat cameraData)
 /// vola sa ked dojdu nove data z trackera
 int MainWindow::processThisSkeleton(skeleton skeledata)
 {
+    static int translation = 0;
+    static boolean arc = false;
 
     memcpy(&skeleJoints,&skeledata,sizeof(skeleton));
     ///("\n%f %f %f \n",(skeleJoints.joints[8].z - skeleJoints.joints[12].z), (skeleJoints.joints[8].z - skeleJoints.joints[16].z), (skeleJoints.joints[8].z - skeleJoints.joints[20].z));
@@ -191,19 +185,63 @@ int MainWindow::processThisSkeleton(skeleton skeledata)
             (sqrt(pow((skeleJoints.joints[29].x - skeleJoints.joints[21].x),2)+pow((skeleJoints.joints[29].y - skeleJoints.joints[21].y),2)) > 2*(sqrt(pow((skeleJoints.joints[41].x - skeleJoints.joints[21].x),2)+pow((skeleJoints.joints[41].y - skeleJoints.joints[21].y),2))));
     bool palecLavy = (((sqrt(pow((skeleJoints.joints[4].x - skeleJoints.joints[0].x),2)+pow((skeleJoints.joints[4].y - skeleJoints.joints[0].y),2))) -(sqrt(pow((skeleJoints.joints[8].x - skeleJoints.joints[0].x),2)+pow((skeleJoints.joints[8].y - skeleJoints.joints[0].y),2)))) > 0.05);
     bool palecPravy = (((sqrt(pow((skeleJoints.joints[25].x - skeleJoints.joints[21].x),2)+pow((skeleJoints.joints[25].y - skeleJoints.joints[21].y),2))) -(sqrt(pow((skeleJoints.joints[29].x - skeleJoints.joints[21].x),2)+pow((skeleJoints.joints[29].y - skeleJoints.joints[21].y),2)))) > 0.05);
-    if(lavaRuka && pravaRuka){
-        robot.setTranslationSpeed(300);
-    }else if(lavaRuka && !pravaRuka){
-        if(palecPravy){
-            robot.setArcSpeed(300,-300);
-        }else robot.setRotationSpeed(-3.14159/3);
 
-    }else if(!lavaRuka && pravaRuka){
-        if(palecLavy){
-            robot.setArcSpeed(300,300);
-        }else robot.setRotationSpeed(3.14159/3);
-    }else if(!lavaRuka && !pravaRuka && palecLavy && palecPravy){
-        robot.setTranslationSpeed(-200);
+    bool stop = (sqrt(pow((skeleJoints.joints[8].x - skeleJoints.joints[29].x),2)+pow((skeleJoints.joints[8].y - skeleJoints.joints[29].y),2)) < 0.05);
+
+   // printf("%f",(sqrt(pow((skeleJoints.joints[8].x - skeleJoints.joints[29].x),2)+pow((skeleJoints.joints[8].y - skeleJoints.joints[29].y),2))));
+
+
+    if(stop){
+        translation=0;
+        robot.setTranslationSpeed(translation);
+    }
+    else if(lavaRuka && pravaRuka){
+        arc = false;
+        translation += 25;
+        if(translation > 400) translation = 400;
+        robot.setTranslationSpeed(translation);
+
+    }else if(lavaRuka && !pravaRuka && palecPravy){
+
+        arc = true;
+        translation += 25;
+        if(translation > 400) translation = 400;
+        robot.setArcSpeed(translation,-400);
+
+    }else if(!lavaRuka && pravaRuka && palecLavy){
+
+        arc = true;
+        translation += 25;
+        if(translation > 400) translation = 400;
+        robot.setArcSpeed(translation,400);
+
+
+    }else if(lavaRuka && !pravaRuka && !palecPravy && (translation == 0)){
+
+        robot.setRotationSpeed(-3.14159/3);
+    }else if(!lavaRuka && pravaRuka && !palecLavy && (translation == 0)){
+
+        robot.setRotationSpeed(3.14159/3);
+    }
+    else if(!lavaRuka && !pravaRuka && palecLavy && palecPravy && (translation <= 0)){
+        arc = false;
+        translation -= 15;
+        if(translation < -300) translation = -300;
+        robot.setTranslationSpeed(translation);
+    }else {
+
+        if(abs(translation) <= 50){
+            translation=0;
+            arc = false;
+        }else if(translation > 50){
+            translation -= 40;
+        }else if(translation < -50){
+            translation += 40;
+        }
+
+        if(arc){
+            robot.setArcSpeed(translation,400);
+        }else robot.setTranslationSpeed(translation);
     }
 
     //printf("\nBOOL %s\n",palec ? "true" : "false");
@@ -225,10 +263,11 @@ void MainWindow::on_pushButton_9_clicked() //start button
     robot.setLaserParameters(ipaddress,52999,5299,/*[](LaserMeasurement dat)->int{std::cout<<"som z lambdy callback"<<std::endl;return 0;}*/std::bind(&MainWindow::processThisLidar,this,std::placeholders::_1));
     robot.setRobotParameters(ipaddress,53000,5300,std::bind(&MainWindow::processThisRobot,this,std::placeholders::_1));
     //---simulator ma port 8889, realny robot 8000
-    robot.setCameraParameters("http://"+ipaddress+":8889/stream.mjpg",std::bind(&MainWindow::processThisCamera,this,std::placeholders::_1));
+    robot.setCameraParameters("http://"+ipaddress+":8000/stream.mjpg",std::bind(&MainWindow::processThisCamera,this,std::placeholders::_1));
     robot.setSkeletonParameters("127.0.0.1",23432,23432,std::bind(&MainWindow::processThisSkeleton,this,std::placeholders::_1));
     ///ked je vsetko nasetovane tak to tento prikaz spusti (ak nieco nieje setnute,tak to normalne nenastavi.cize ak napr nechcete kameru,vklude vsetky info o nej vymazte)
     robot.robotStart();
+    ///8889
 
 
 
