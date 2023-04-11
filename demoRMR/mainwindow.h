@@ -83,7 +83,9 @@ private:
      int updateSkeletonPicture;
      skeleton skeleJoints;
      int datacounter;
+     bool stopForw;
      bool move;
+     bool stopBack;
      QTimer *timer;
 
      QJoysticks *instance;
