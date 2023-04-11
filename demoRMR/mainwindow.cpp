@@ -292,6 +292,11 @@ void MainWindow::paintEvent(QPaintEvent *event)
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
+                            }else if(laserRadians>=5.495 && laserRadians<6.28 && copyOfLaserData.Data[k].scanDistance<360 && i==3){
+                                pen3.setColor(colorHigh);
+                                painter2.setPen(pen3);
+                                painter2.drawLine(lastX, lastY, endX, endY);
+                                //b=true;
                             }
 
                         }
