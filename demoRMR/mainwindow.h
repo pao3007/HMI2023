@@ -86,6 +86,8 @@ private:
      bool stopForw;
      bool move;
      bool stopBack;
+     bool tocimVlavo, tocimVpravo, idemRovno, idemVlavo, idemVpravo, brzdim, emergencyBrdza, cuvam;
+     int translationG;
      QTimer *timer;
 
      QJoysticks *instance;

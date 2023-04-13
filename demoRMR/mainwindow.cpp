@@ -17,9 +17,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     //tu je napevno nastavena ip. treba zmenit na to co ste si zadali do text boxu alebo nejaku inu pevnu. co bude spravna
-    //ipaddress="192.168.1.14";//192.168.1.11toto je na niektory realny robot.. na lokal budete davat "127.0.0.1"
+    ipaddress="192.168.1.14";//192.168.1.11toto je na niektory realny robot.. na lokal budete davat "127.0.0.1"
   //  cap.open("http://192.168.1.11:8000/stream.mjpg");
-    ipaddress="127.0.0.1";
+   // ipaddress="127.0.0.1";
     ui->setupUi(this);
     datacounter=0;
   //  timer = new QTimer(this);
@@ -122,19 +122,81 @@ void MainWindow::paintEvent(QPaintEvent *event)
         painter2.setPen(pero2);
         painter2.drawEllipse(QPoint(88, image.height()-88),4,4);
         pero.setColor(Qt::blue);
+        pero.setWidth(3);
         painter2.setPen(pero);
         painter2.drawLine(88,image.height()-88,88,image.height()-94);
+
 
 
 
         if(!move){
 
             font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
             painter2.setFont(font);
             pero.setColor(Qt::blue);
             painter2.setPen(pero);
-            painter2.drawText(10,image.height()-175-30, 450, 350, 0, tr("SAFETY STOP"));
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("SAFETY STOP"));
 
+        }else if(idemRovno){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("ROVNO"));
+        }else if(idemVlavo){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("DOLAVA"));
+        }else if(idemVpravo){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("DOPRAVA"));
+        }else if(tocimVlavo){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("TOCIM VLAVO"));
+        }else if(tocimVpravo){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("TOCIM VPRAVO"));
+        }else if(cuvam){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("DOZADU"));
+        }else if(brzdim){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            if(translationG != 0){
+                painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("BRZDENIE"));
+            }else painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("STOJIM"));
+
+        }else if(emergencyBrdza){
+            font.setPixelSize(25);
+            font.setWeight(QFont::Bold);
+            painter2.setFont(font);
+            pero.setColor(Qt::red);
+            painter2.setPen(pero);
+            painter2.drawText(5,image.height()-175-30, 460, 350, 0, tr("BRZDENIE"));
         }
 
         pero.setColor(Qt::cyan);
@@ -208,19 +270,20 @@ void MainWindow::paintEvent(QPaintEvent *event)
                     iBack++;
                 }
 
-                int dist=copyOfLaserData.Data[k].scanDistance/60; ///vzdialenost nahodne predelena 20 aby to nejako vyzeralo v okne.. zmen podla uvazenia
+                int dist=copyOfLaserData.Data[k].scanDistance/55; ///vzdialenost nahodne predelena 20 aby to nejako vyzeralo v okne.. zmen podla uvazenia
                 int xp=rectLidar.width()-(rectLidar.width()/2+dist*2*sin((360.0-copyOfLaserData.Data[k].scanAngle)*3.14159/180.0)); //prepocet do obrazovky
                 int yp=rectLidar.height()-(rectLidar.height()/2+dist*2*cos((360.0-copyOfLaserData.Data[k].scanAngle)*3.14159/180.0)) + image.height()-175;//prepocet do obrazovky
                 if(rectLidar.contains(xp,yp)){
                     pero.setColor(Qt::yellow);
+                    pero.setWidth(4);
                     painter2.setPen(pero);
                     painter2.drawPoint(xp,yp);
                 }
-                if(copyOfLaserData.Data[k].scanDistance > 0 && copyOfLaserData.Data[k].scanDistance < 320){
+                if(copyOfLaserData.Data[k].scanDistance > 0 && copyOfLaserData.Data[k].scanDistance < 350){
                     i++;
                 }
 //////////////////////////////////////////////////////////////////////////////
-                if(copyOfLaserData.Data[k].scanDistance<600){
+                if((copyOfLaserData.Data[k].scanDistance<600) && (copyOfLaserData.Data[k].scanDistance>130)){
                     float pi = 3.14159;
                     int pointX, pointY, numLines, centerX, centerY, radius, endX, endY, lastX = 0, lastY = 0;
                     pointX = frame[actIndex].cols-120;
@@ -256,43 +319,43 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
 
                         if(i>0){
-                            if(laserRadians>=0 && laserRadians<0.785 && copyOfLaserData.Data[k].scanDistance<360 && i==2){
+                            if(laserRadians>=0 && laserRadians<0.785 && copyOfLaserData.Data[k].scanDistance<300 && i==2){
                             //printf("\nlidarUhol %f\n",laserRadians);
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
-                            }else if(laserRadians>=0.785 && laserRadians<1.57 && copyOfLaserData.Data[k].scanDistance<360 && i==1){
+                            }else if(laserRadians>=0.785 && laserRadians<1.57 && copyOfLaserData.Data[k].scanDistance<300 && i==1){
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
-                            }else if(laserRadians>=1.57 && laserRadians<2.335 && copyOfLaserData.Data[k].scanDistance<360 && i==8){
+                            }else if(laserRadians>=1.57 && laserRadians<2.335 && copyOfLaserData.Data[k].scanDistance<300 && i==8){
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
-                            }else if(laserRadians>=2.335 && laserRadians<3.14 && copyOfLaserData.Data[k].scanDistance<360 && i==7){
+                            }else if(laserRadians>=2.335 && laserRadians<3.14 && copyOfLaserData.Data[k].scanDistance<300 && i==7){
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
-                            }else if(laserRadians>=3.14 && laserRadians<3.925 && copyOfLaserData.Data[k].scanDistance<360 && i==6){
+                            }else if(laserRadians>=3.14 && laserRadians<3.925 && copyOfLaserData.Data[k].scanDistance<300 && i==6){
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
-                            }else if(laserRadians>=3.925 && laserRadians<4.71 && copyOfLaserData.Data[k].scanDistance<360 && i==5){
+                            }else if(laserRadians>=3.925 && laserRadians<4.71 && copyOfLaserData.Data[k].scanDistance<300 && i==5){
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
-                            }else if(laserRadians>=4.71 && laserRadians<5.495 && copyOfLaserData.Data[k].scanDistance<360 && i==4){
+                            }else if(laserRadians>=4.71 && laserRadians<5.495 && copyOfLaserData.Data[k].scanDistance<300 && i==4){
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
                                 //b=true;
-                            }else if(laserRadians>=5.495 && laserRadians<6.28 && copyOfLaserData.Data[k].scanDistance<360 && i==3){
+                            }else if(laserRadians>=5.495 && laserRadians<6.28 && copyOfLaserData.Data[k].scanDistance<300 && i==3){
                                 pen3.setColor(colorHigh);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
@@ -370,39 +433,39 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
                         if(i>0){
                             //copyOfLaserData.Data[k].scanDistance<550 &&
-                            if(laserRadians>=0 && laserRadians<=0.785 && copyOfLaserData.Data[k].scanDistance<550 && i==2){
+                            if(laserRadians>=0 && laserRadians<=0.785 && copyOfLaserData.Data[k].scanDistance<599 && i==2){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>0.785 && laserRadians<=1.57 && copyOfLaserData.Data[k].scanDistance<550 && i==1){
+                            }else if(laserRadians>0.785 && laserRadians<=1.57 && copyOfLaserData.Data[k].scanDistance<599 && i==1){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>1.57 && laserRadians<=2.335 && copyOfLaserData.Data[k].scanDistance<550 && i==8){
+                            }else if(laserRadians>1.57 && laserRadians<=2.335 && copyOfLaserData.Data[k].scanDistance<599 && i==8){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>2.335 && laserRadians<=3.14 && copyOfLaserData.Data[k].scanDistance<550 && i==7){
+                            }else if(laserRadians>2.335 && laserRadians<=3.14 && copyOfLaserData.Data[k].scanDistance<599 && i==7){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>3.14 && laserRadians<=3.925 && copyOfLaserData.Data[k].scanDistance<550 && i==6){
+                            }else if(laserRadians>3.14 && laserRadians<=3.925 && copyOfLaserData.Data[k].scanDistance<599 && i==6){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>3.925 && laserRadians<=4.71 && copyOfLaserData.Data[k].scanDistance<550 && i==5){
+                            }else if(laserRadians>3.925 && laserRadians<=4.71 && copyOfLaserData.Data[k].scanDistance<599 && i==5){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>4.71 && laserRadians<=5.495 && copyOfLaserData.Data[k].scanDistance<550 && i==4){
+                            }else if(laserRadians>4.71 && laserRadians<=5.495 && copyOfLaserData.Data[k].scanDistance<599 && i==4){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>5.495 && laserRadians<=6.28 && copyOfLaserData.Data[k].scanDistance<550 && i==3){
+                            }else if(laserRadians>5.495 && laserRadians<=6.28 && copyOfLaserData.Data[k].scanDistance<599 && i==3){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
-                            }else if(laserRadians>0 && laserRadians<=0.785 && copyOfLaserData.Data[k].scanDistance<550 && i==3){
+                            }else if(laserRadians>0 && laserRadians<=0.785 && copyOfLaserData.Data[k].scanDistance<599 && i==3){
                                 pen3.setColor(colorLow);
                                 painter2.setPen(pen3);
                                 painter2.drawLine(lastX, lastY, endX, endY);
@@ -500,7 +563,7 @@ int MainWindow::processThisLidar(LaserMeasurement laserData)
     //tu mozete robit s datami z lidaru.. napriklad najst prekazky, zapisat do mapy. naplanovat ako sa prekazke vyhnut.
     // ale nic vypoctovo narocne - to iste vlakno ktore cita data z lidaru
     updateLaserPicture=1;
-    ///update();
+    update();
    //tento prikaz prinuti prekreslit obrazovku.. zavola sa paintEvent funkcia
 
 
@@ -516,7 +579,7 @@ int MainWindow::processThisCamera(cv::Mat cameraData)
     cameraData.copyTo(frame[(actIndex+1)%3]);//kopirujem do nasej strukury
     actIndex=(actIndex+1)%3;//aktualizujem kde je nova fotka
     updateLaserPicture=1;
-    update();
+    ///update();
     return 0;
 }
 
@@ -526,6 +589,14 @@ int MainWindow::processThisSkeleton(skeleton skeledata)
 {
     static int translation = 0;
     static boolean arc = false;
+    emergencyBrdza = false;
+    idemVlavo = false;
+    idemVpravo = false;
+    tocimVlavo = false;
+    tocimVpravo = false;
+    brzdim = false;
+    cuvam = false;
+    idemRovno = false;
 
     memcpy(&skeleJoints,&skeledata,sizeof(skeleton));
 
@@ -544,22 +615,17 @@ int MainWindow::processThisSkeleton(skeleton skeledata)
 
         bool stop = (sqrt(pow((skeleJoints.joints[8].x - skeleJoints.joints[29].x),2)+pow((skeleJoints.joints[8].y - skeleJoints.joints[29].y),2)) < 0.05);
 
-        if(stopBack){
-            printf("STOPBACK");
-        }
-        if(stopForw){
-            printf("STOPFORW");
-        }
-
         if(stop){
+            emergencyBrdza = true;
             translation=0;
             robot.setTranslationSpeed(translation);
         }
         else if(lavaRuka && pravaRuka && !stopForw){
             arc = false;
-            translation += 25;
+            translation += 15;
             if(translation > 400) translation = 400;
             robot.setTranslationSpeed(translation);
+            idemRovno = true;
 
         }else if(lavaRuka && !pravaRuka && palecPravy && !stopForw){
 
@@ -567,6 +633,7 @@ int MainWindow::processThisSkeleton(skeleton skeledata)
             translation += 25;
             if(translation > 400) translation = 400;
             robot.setArcSpeed(translation,-400);
+            idemVpravo = true;
 
         }else if(!lavaRuka && pravaRuka && palecLavy && !stopForw){
 
@@ -574,20 +641,24 @@ int MainWindow::processThisSkeleton(skeleton skeledata)
             translation += 25;
             if(translation > 400) translation = 400;
             robot.setArcSpeed(translation,400);
+            idemVlavo = true;
 
 
         }else if(lavaRuka && !pravaRuka && !palecPravy && (translation == 0)){
 
             robot.setRotationSpeed(-3.14159/3);
+            tocimVpravo = true;
         }else if(!lavaRuka && pravaRuka && !palecLavy && (translation == 0)){
 
             robot.setRotationSpeed(3.14159/3);
+            tocimVlavo = true;
         }
         else if(!stopBack && (!lavaRuka && !pravaRuka && palecLavy && palecPravy && (translation <= 0))){
             arc = false;
-            translation -= 15;
+            translation -= 20;
             if(translation < -300) translation = -300;
             robot.setTranslationSpeed(translation);
+            cuvam = true;
         }else {
 
             if(abs(translation) <= 50){
@@ -598,18 +669,29 @@ int MainWindow::processThisSkeleton(skeleton skeledata)
             }else if(translation < -50){
                 translation += 40;
             }
+            brzdim = true;
 
-            if(stopForw) translation = 0;
-            if(stopBack) translation = 0;
+            if(stopForw){
+                brzdim = false;
+                translation = 0;
+                emergencyBrdza = true;
+            }
+            if(stopBack){
+                brzdim = false;
+                translation = 0;
+                emergencyBrdza = true;
+            }
 
             if(arc){
                 robot.setArcSpeed(translation,400);
             }else robot.setTranslationSpeed(translation);
+
         }
 
         updateSkeletonPicture=1;
     }else robot.setTranslationSpeed(0);
 
+    translationG = translation;
     return 0;
 }
 void MainWindow::on_pushButton_9_clicked() //start button
@@ -634,7 +716,7 @@ void MainWindow::on_pushButton_9_clicked() //start button
         robot.setLaserParameters(ipaddress,52999,5299,/*[](LaserMeasurement dat)->int{std::cout<<"som z lambdy callback"<<std::endl;return 0;}*/std::bind(&MainWindow::processThisLidar,this,std::placeholders::_1));
         robot.setRobotParameters(ipaddress,53000,5300,std::bind(&MainWindow::processThisRobot,this,std::placeholders::_1));
         //---simulator ma port 8889, realny robot 8000
-        robot.setCameraParameters("http://"+ipaddress+":8889/stream.mjpg",std::bind(&MainWindow::processThisCamera,this,std::placeholders::_1));
+        robot.setCameraParameters("http://"+ipaddress+":8000/stream.mjpg",std::bind(&MainWindow::processThisCamera,this,std::placeholders::_1));
         robot.setSkeletonParameters("127.0.0.1",23432,23432,std::bind(&MainWindow::processThisSkeleton,this,std::placeholders::_1));
         ///ked je vsetko nasetovane tak to tento prikaz spusti (ak nieco nieje setnute,tak to normalne nenastavi.cize ak napr nechcete kameru,vklude vsetky info o nej vymazte)
         robot.robotStart();
@@ -655,12 +737,14 @@ void MainWindow::on_pushButton_9_clicked() //start button
 
     if(start_stop){
         ui->pushButton_9->setText("START");
+        ui->pushButton_9->setStyleSheet("background-color: grey");
         start_stop = false;
         move = false;
         robot.setTranslationSpeed(0);
 
     }else {
         ui->pushButton_9->setText("STOP");
+        ui->pushButton_9->setStyleSheet("background-color: white");
         start_stop = true;
         move = true;
 
